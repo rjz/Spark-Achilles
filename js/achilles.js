@@ -1,7 +1,7 @@
 /**
- *	Achilles
+ *	Achilles core functions
  *
- *	Closure externs at http://closure-compiler.googlecode.com/svn/trunk/contrib/externs/jquery-1.5.js
+ *	@license	JSON <http://www.json.org/license.html>
  */
 (function($){
 
@@ -27,7 +27,7 @@ $.extend($.fn,  {
 });
 
 /**
- *	extend AJAX namespace with some default magic
+ *	extend AJAX namespace with a few helpers
  */
 var achilles = {
 	/**
@@ -37,7 +37,7 @@ var achilles = {
 	'selected' : false,
 
 	/**
-	 *	Loader - display loading graphic to element
+	 *	Loader - mark an element as loading
 	 *	@param	{jQuery|Element|String}	el	The container element to load within
 	 *	@return	{Object}	The result of the loader function
 	 */

@@ -1,6 +1,6 @@
 <?php if (! defined('BASEPATH')) exit('No direct script access');
 /**
- *	A class for structuring AJAX processing and responses
+ *	Achilles: a class for structuring AJAX processing and responses
  *
  *	@author    RJ Zaworski <rj@rjzaworski.com>
  */
@@ -42,10 +42,10 @@ class Achilles {
 	}
 
 	/**
-	 *	Extend Achilles library to support the formValidator() function
+	 *	Extend Achilles library to support form validation
 	 *
 	 *	@param	string	a CSS selector pointed at the target form
-	 *	@return	array	an output array to be used with the AJAX Library
+	 *	@return	array	the achilles queue
 	 */
 	public function showErrors( $selector ) {
 
@@ -90,7 +90,9 @@ class Achilles {
 	}
 
 	/**
-	 *	Call a function that hasn't been explicitly defined
+	 *	Handle requests for methods that haven't been explicitly defined
+	 *	@param	string	requested function
+	 *	@param	array	parameters for the requested function
 	 */
 	public function __call( $function, $params ) {
 
@@ -118,12 +120,6 @@ class Achilles {
 	public function flush() {
 
 		echo json_encode( $this->queue );
-		exit;
-	}
-	
-	public function write( $obj ) {
-
-		echo json_encode( $obj );
 		exit;
 	}
 }

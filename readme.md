@@ -136,9 +136,9 @@ Now, add that `nametag` function to the `welcome` controller:
 
 Notice that each time the form is posted, Achilles is given the opportunity to interject a response. If validation fails, the `showErrors` function is used to apply the results of validation to the form. If it succeeds, Achilles replaces the nametag form with a note that everything turned out alright.
 
-### Custom Javascript handlers on the client
+### Custom Javascript handlers
 
-Achilles isn't good for much by itself. Really, it's designed to be extended by the front end team through the use of 'handler' methods added to the `achilles.handlers` namespace. This is done by simply hooking in once the achilles script has been included. Adding an "alert" function, for instance, could be achieved using:
+Achilles is designed to be extended by the front end team through the use of 'handler' methods added to the `achilles.handlers` namespace. This is done by simply hooking in once the achilles script has been included. Adding an "alert" function, for instance, could be achieved using:
 
 	<script>
 	$.extend(achilles.handlers, {
@@ -148,24 +148,11 @@ Achilles isn't good for much by itself. Really, it's designed to be extended by 
 	});
 	</script>
 
-**Note**: although you *can* include handlers inline in your view files, it sort of defeats the whole purpose. Please just include your handlers as a separate library!
+**Note**: although you *can* include handlers inline in your view files, it sort of defeats the whole purpose. Please keep them in a library!
 
-### Routine libraries on the server
+### Building custom routines on the server
 
-Achilles supports plugins that extend its core functionality with predefined action routines. For example, you might want to modify the default message routine to slide new messages down into an element that matches a pre-defined selector. Create a new library (`libraries/achilles_lib.php`) and add:
-
-	class Achilles_lib {
-	
-		protected $ci;
-	
-		public function __construct() {
-	
-			$this->ci = &get_instance();
-			$this->ci->load->library('achilles');
-			
-			// register a callback
-			$this->ci->achilles->add_callback( 'myMessage', array( $this, 'my_message' ) );
-		}
+Achilles' core functionality can be extended with predefined actions. For example, you might want to modify the default message routine to slide new messages down into an element that matches a pre-defined selector. You can do this by defining a routine in the `achilles_lib` library (`libraries/achilles_lib.php`):
 	
 		public function my_message( $selector, $message ) {
 	
@@ -177,7 +164,44 @@ Achilles supports plugins that extend its core functionality with predefined act
 		}
 	}
 
-This new library creates a new routine (`my_message`) and registers it with achilles using the `add_callback` method. The only requirement for routine functions is that they MUST be chainable (i.e., they must return the achilles chain).
+and telling `achilles_lib` to load the new function as a plugin in the `callbacks` array:
+
+	$callbacks = array(
+		'myMessage' => 'my_message'
+	)
+
+When `achilles_lib` loads, it will now register the custom routine with achilles as `achilles::myMessage`. The new routine can then be called in any controller function just like any other achilles function:
+
+	if( $this->achilles->use_achilles() ) {
+
+		$this->load->library( 'test/achilles_lib' );
+		$this->achilles
+			->myMessage('body','hello, world!')
+			->flush();
+	}
+
+The only caveat for custom routines is that they MUST be chainable (i.e., they must return the achilles chain).
+
+**Note**: in keeping with Codeigniter's on-demand methodology, `achilles_lib` is *not* auto-loaded by the `achilles` spark. `achilles_lib` *must* be loaded manually before any custom routines are called.
+
+Contributing
+------------
+
+Please contribute! To add library routines or modify the core, please fork [Achilles on Github](https://github.com/rjz/Spark-Achilles) and submit your changes as a [pull request](http://help.github.com/send-pull-requests/).
+
+### Contributing javascript handlers
+
+To keep style consist, please make sure that contributed handler functions are:
+
+1. added alphabetically to `js/achilles.lib.js`
+2. described using [Closure-style](code.google.com/closure/compiler/docs/js-for-compiler.html) annotations
+
+### Contributing Codeigniter routines
+
+To ensure consistent style, please make sure that contributed routines are:
+
+1. added alphabetically to `libraries/achilles_lib`
+2. described using [PHPDoc-style](http://manual.phpdoc.org/HTMLSmartyConverter/HandS/phpDocumentor/tutorial_tags.pkg.html) tags.
 
 Author
 ------
@@ -187,4 +211,4 @@ RJ Zaworski <rj@rjzaworski.com>
 License
 -------
 
-Atomizer is released under the JSON License. You can read the license [here](http://www.json.org/license.html).
+Achilles is released under the JSON License. You can read the license [here](http://www.json.org/license.html).
