@@ -1,11 +1,13 @@
-Achilles
+achilles
 ========
 
-It's like AJAX, but...it's different. To encourage recycling and minimize the amount of spaghetti in your code, Achilles provides a server-side interface for describing client-side behaviors. 
+It's like AJAX, but...it's different. To encourage accessibility while minimizing the amount of spaghetti in your code, achilles provides a server-side interface for describing client-side behaviors.
 
 ### Real quickly,
 
-On the server, Achilles checks to see if it's supposed to respond to an AJAX request. If it is, it might respond by telling the client to log a message:
+Under achilles your application&mdash;forms, validation, almost *everything*&mdash; resides on the server.
+
+Call achilles in your controller functions to allow it to provide a response to an AJAX request. If the controller is being called via AJAX, you might have achilles respond by telling the client to log a message:
 
 	if( $this->achilles->use_achilles() ) {
 		$this->achilles->log('hello, world!')->flush();
@@ -19,30 +21,30 @@ On the client side, a pre-defined `message` function is waiting to log the retur
 		} catch(e){}
 	};
 
-### And that's awesome because:
+### That's awesome, because:
 
-* It's clean: code is neatly wrapped up into the Achilles namespace rather than being injected into the page
-* It's accessible: Achilles encourages redundancy and progressive enhancement
+* It's clean: code is neatly wrapped up into the achilles namespace rather than being injected into the page
+* It's accessible: achilles encourages redundancy and progressive enhancement
 * It's efficient: static and dynamic sites can be developed simultaneously, and all code is recyclable
-* **It makes sense**: using Achilles, a controller queried via AJAX can respond to the client directly
+* **It makes sense**: using achilles, a controller queried via AJAX can respond to the client directly
 
 How it works
 ------------
 
 1. A link or form with the `.achilles-able` class is triggered by a `click` or `submit` event (respectively)
 2. The controller targeted by the `.achilles-able` element processes the request and responds through the achilles interface
-3. Achilles converts the chained response into JSON
+3. achilles converts the chained response into JSON
 4. The client-side script processor (`achilles.js`) parses the JSON from the server and executes the requested actions.
 
 Dependencies
 ------------
 
-Achilles is dependent on jQuery v1.5+
+achilles is dependent on jQuery v1.5+
 
 How-to
 ------
 
-Achilles is available for Codeigniter via [Sparks](http://getsparks.org/install).
+achilles is available for Codeigniter via [Sparks](http://getsparks.org/install).
 
 Once you've got the spark set up, you can load it using:
 
@@ -84,7 +86,7 @@ Once you've got the spark set up, you can load it using:
 
 ### Form Processing
 
-One of Achilles built-in features is the ability to translate results from Codeigniter's `form_validation` class into AJAX-driven messages. Just create a view in `views/achilles_form.php` containing a form with the `achilles-able` class:
+One of achilles built-in features is the ability to translate results from Codeigniter's `form_validation` class into AJAX-driven messages. Just create a view in `views/achilles_form.php` containing a form with the `achilles-able` class:
 
 	<html>
 	<body>
@@ -134,11 +136,11 @@ Now, add that `nametag` function to the `welcome` controller:
 		$this->load->view('achilles_form.php');
 	}
 
-Notice that each time the form is posted, Achilles is given the opportunity to interject a response. If validation fails, the `showErrors` function is used to apply the results of validation to the form. If it succeeds, Achilles replaces the nametag form with a note that everything turned out alright.
+Notice that each time the form is posted, achilles is given the opportunity to interject a response. If validation fails, the `showErrors` function is used to apply the results of validation to the form. If it succeeds, achilles replaces the nametag form with a note that everything turned out alright.
 
 ### Custom Javascript handlers
 
-Achilles is designed to be extended by the front end team through the use of 'handler' methods added to the `achilles.handlers` namespace. This is done by simply hooking in once the achilles script has been included. Adding an "alert" function, for instance, could be achieved using:
+achilles is designed to be extended by the front end team through the use of 'handler' methods added to the `achilles.handlers` namespace. This is done by simply hooking in once the achilles script has been included. Adding an "alert" function, for instance, could be achieved using:
 
 	<script>
 	$.extend(achilles.handlers, {
@@ -152,7 +154,7 @@ Achilles is designed to be extended by the front end team through the use of 'ha
 
 ### Building custom routines on the server
 
-Achilles' core functionality can be extended with predefined actions. For example, you might want to modify the default message routine to slide new messages down into an element that matches a pre-defined selector. You can do this by defining a routine in the `achilles_lib` library (`libraries/achilles_lib.php`):
+achilles' core functionality can be extended with predefined actions. For example, you might want to modify the default message routine to slide new messages down into an element that matches a pre-defined selector. You can do this by defining a routine in the `achilles_lib` library (`libraries/achilles_lib.php`):
 	
 		public function my_message( $selector, $message ) {
 	
@@ -187,7 +189,7 @@ The only caveat for custom routines is that they MUST be chainable (i.e., they m
 Contributing
 ------------
 
-Please contribute! To add library routines or modify the core, please fork [Achilles on Github](https://github.com/rjz/Spark-Achilles) and submit your changes as a [pull request](http://help.github.com/send-pull-requests/).
+Please contribute! To add library routines or modify the core, please fork [achilles on Github](https://github.com/rjz/Spark-achilles) and submit your changes as a [pull request](http://help.github.com/send-pull-requests/).
 
 ### Contributing javascript handlers
 
@@ -211,4 +213,4 @@ RJ Zaworski <rj@rjzaworski.com>
 License
 -------
 
-Achilles is released under the JSON License. You can read the license [here](http://www.json.org/license.html).
+achilles is released under the JSON License. You can read the license [here](http://www.json.org/license.html).
