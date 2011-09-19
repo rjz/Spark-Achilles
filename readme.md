@@ -1,16 +1,22 @@
 achilles
 ========
 
-It's like AJAX, but...it's different. To encourage accessibility while minimizing the amount of spaghetti in your code, achilles provides a server-side interface for describing client-side behaviors.
+It's like AJAX, but...it's different. To encourage accessibility and minimize the amount of spaghetti in your views, achilles provides a server-side interface for scripting client-side behaviors.
 
 ### Real quickly,
 
-Under achilles your application&mdash;forms, validation, almost *everything*&mdash; resides on the server.
+Under achilles' server-first approach, your application&mdash;forms, validation, almost *everything*&mdash; resides almost exclusively on the server. By including the `achilles.js` script to your views, achilles enables you to build AJAX-ready components that can interact with your controllers and deliver dynamic experiences through the achilles interface. 
 
-Call achilles in your controller functions to allow it to provide a response to an AJAX request. If the controller is being called via AJAX, you might have achilles respond by telling the client to log a message:
+	<a class="achilles-able" href="<?php echo site_url('controller/achilles_function'); ?>">Say hello!</a>
 
-	if( $this->achilles->use_achilles() ) {
-		$this->achilles->log('hello, world!')->flush();
+Call achilles in your controller functions to dynamically respond to AJAX requests. When a controller is called by an `achilles-able` link you might, for instance, have achilles respond by telling the client to log a message:
+
+	public function achilles_function() {
+		if( $this->achilles->use_achilles() ) {
+			$this->achilles
+				->log('hello, world!')
+				->flush();
+		}
 	}
 
 On the client side, a pre-defined `message` function is waiting to log the returned message:
@@ -23,10 +29,10 @@ On the client side, a pre-defined `message` function is waiting to log the retur
 
 ### That's awesome, because:
 
+* It's efficient: write validation routines and script behaviors once, avoiding duplication of effort between the client and server side
 * It's clean: code is neatly wrapped up into the achilles namespace rather than being injected into the page
-* It's accessible: achilles encourages redundancy and progressive enhancement
-* It's efficient: static and dynamic sites can be developed simultaneously, and all code is recyclable
-* **It makes sense**: using achilles, a controller queried via AJAX can respond to the client directly
+* It's accessible: achilles' server-first approach encourages fallbacks, redundancy and progressive enhancement
+* **It makes sense**: using achilles, a controller queried via AJAX doesn't need client-side bootstraps to respond to the client directly
 
 How it works
 ------------
