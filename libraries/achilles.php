@@ -2,7 +2,7 @@
 /**
  *	Achilles: a class for structuring AJAX processing and responses
  *
- *	@author    RJ Zaworski <rj@rjzaworski.com>
+ *	@author     RJ Zaworski <rj@rjzaworski.com>
  */
 class Achilles {
 

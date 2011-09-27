@@ -56,7 +56,7 @@ Once you've got the spark set up, you can load it using:
 
 	$this->load->spark('achilles/[version #]');
 
-### Getting started
+## Getting started
 
 1. Add the following to your `welcome` controller:
 
@@ -90,7 +90,7 @@ Once you've got the spark set up, you can load it using:
 
 3. If everything is working correctly, achilles will dynamically respond with a javascript `alert`. If anything ever goes wrong (e.g., because Javascript is unavailable) the `achilles` controller function will still display its initial (static) message.
 
-### Form Processing
+## Form Processing
 
 One of achilles built-in features is the ability to translate results from Codeigniter's `form_validation` class into AJAX-driven messages. Just create a view in `views/achilles_form.php` containing a form with the `achilles-able` class:
 
@@ -144,7 +144,7 @@ Now, add that `nametag` function to the `welcome` controller:
 
 Notice that each time the form is posted, achilles is given the opportunity to interject a response. If validation fails, the `showErrors` function is used to apply the results of validation to the form. If it succeeds, achilles replaces the nametag form with a note that everything turned out alright.
 
-### Custom Javascript handlers
+## Custom Javascript handlers
 
 achilles is designed to be extended by the front end team through the use of 'handler' methods added to the `achilles.handlers` namespace. This is done by simply hooking in once the achilles script has been included. Adding an "alert" function, for instance, could be achieved using:
 
@@ -158,7 +158,7 @@ achilles is designed to be extended by the front end team through the use of 'ha
 
 **Note**: although you *can* include handlers inline in your view files, it sort of defeats the whole purpose. Please keep them in a library!
 
-### Building custom routines on the server
+## Building custom routines on the server
 
 achilles' core functionality can be extended with predefined actions. For example, you might want to modify the default message routine to slide new messages down into an element that matches a pre-defined selector. You can do this by defining a routine in the `achilles_lib` library (`libraries/achilles_lib.php`):
 	
@@ -197,14 +197,14 @@ Contributing
 
 Please contribute! To add library routines or modify the core, please fork [achilles on Github](https://github.com/rjz/Spark-achilles) and submit your changes as a [pull request](http://help.github.com/send-pull-requests/).
 
-### Contributing javascript handlers
+## Contributing javascript handlers
 
 To keep style consist, please make sure that contributed handler functions are:
 
 1. added alphabetically to `js/achilles.lib.js`
 2. described using [Closure-style](code.google.com/closure/compiler/docs/js-for-compiler.html) annotations
 
-### Contributing Codeigniter routines
+## Contributing Codeigniter routines
 
 To ensure consistent style, please make sure that contributed routines are:
 
