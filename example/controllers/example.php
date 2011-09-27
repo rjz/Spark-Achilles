@@ -43,6 +43,8 @@
 	 */
 	public function form() {
 
+		$this->load->helper( 'url' );
+
 		$this->load->library( 'form_validation' );
 		$this->load->spark( 'achilles/0.0.1' );
 
