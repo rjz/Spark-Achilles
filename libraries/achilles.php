@@ -98,12 +98,11 @@ class Achilles {
 		if( array_key_exists( $function, $this->callbacks ) ) {
 		
 			$this->queue[] = call_user_func_array( $this->callbacks[$function], $params );
-		}
-		else {
+		} else {
 
 			$data = array(
-				'act' => $function,
-				'on' => $params
+				'run' => $function,
+				'arg' => $params
 			);
 
 			$this->queue[] = $data;
