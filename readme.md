@@ -27,7 +27,7 @@ Achilles implements a basic syntax that describes actions in terms of a JSON-enc
 		"arg":["hello, world!"]
 	}]
 
-When a commands is dispatched by the server, a callback on the client catches it and uses it to execute a pre-determined action. This empowers the server to describe actions to the client without enlisting `[eval](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/eval#Don%27t_use_eval!)`.
+When a commands is dispatched by the server, a callback on the client catches it and uses it to execute a pre-determined action. This empowers the server to describe actions to the client without enlisting [`eval()`](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/eval#Don%27t_use_eval!).
 
 To help support this behavior, HTTP requests initiated by the client have a twist: unless otherwise configured, achilles requests will include details of the client browser's state and capabilities:
 
