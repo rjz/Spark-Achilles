@@ -98,36 +98,36 @@ var achilles = function(params) {
 			
 			if (o) {
 
-				var r, 
+				var r,
 					i = 0;
 
 				// execute each method chained up in Codeigniter
-				while (r = o[i++] ) {
+				while (r = o[i++]) {
 
-					if (typeof r.act  == 'string') {
+					if (typeof r.run  == 'string') {
 
-						var what = null,
-							func = null;
+						var subject = null,
+							verb = null;
 
-						if( achilles.selected ) {
-							what = $(achilles.selected);
+						if (achilles.selected) {
+							subject = $(achilles.selected);
 						}
 						// (1) try user functions
-						func = achilles.handlers[r.act];
+						verb = achilles.handlers[r.run];
 
 						// (2) try jQuery
-						if( typeof( func ) != 'function' && what ) {
-							func = $(what)[r.act];
+						if( (typeof verb  != 'function') && subject ) {
+							verb = $(subject)[r.run];
 						}
 
 						// (3) unknown function -- toss an error and get the hell out
-						if( typeof( func ) != 'function' ) {
-							throw( 'undefined handler: ' + r.act );
+						if( typeof( verb ) != 'function' ) {
+							throw( 'undefined handler: ' + r.run );
 							return;
 						}
 
-						// call the function with whatever arguments Codeigniter supplied
-						func.apply( what, r.on );
+						// call the function with whatever arguments the server supplied
+						verb.apply( subject, r.arg );
 					}
 				}
 			}
