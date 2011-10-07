@@ -28,20 +28,31 @@ $.extend($.fn,  {
 
 /**
  *	extend AJAX namespace with a few helpers
+ *	@param	{Object}	params	initialization options
  */
 var achilles = function(params) {
 
 	var /**
 		 *	Options for this version of achilles
 		 *	@type {Object}
+		 *	@access	private
 		 */
 		opts = $.extend({
+			history: true,
 			properties: ['availHeight','availWidth','height','orientation','width']
 		}, params),
+		/**
+		 *	Has achilles been used yet? It will wake up when it's called.
+		 *	@access	private
+		 */
 		_awake = false,
 		/**
+		 *	If an element's loading, _loader will indicate it
+		 *	@type	{achilles.Loader}
+		 */
+		_loader = null,
+		/**
 		 *	Return browser information
-		 *
 		 *	@access	private
 		 */
 		_getDeviceInfo = function() {
@@ -59,20 +70,32 @@ var achilles = function(params) {
 
 			return result;
 		},
+
 		/**
 		 *	Do something cool with whatever the server said
 		 *
 		 *	@access	private
 		 *	@param	{Array}	results	a list of action items
 		 */
-		_parse = function(results) {
+		_parse = function(results, selector) {
+
+			var o;
 
 			try {
 				o = $.parseJSON(results);
 			} catch(e) {
-				// todo: handle an HTML result
+
+				if (!achilles.selected) {
+					throw('no selector set');
+					return;
+				}
+
+				// [fixme]: refine
+				// primitive, but it works:
+				$(achilles.selected).replaceWith($(achilles.selected, results));
+				return;
 			}
-		
+			
 			if (o) {
 
 				var r, 
@@ -109,6 +132,7 @@ var achilles = function(params) {
 				}
 			}
 		},
+
 		/**
 		 *	Handle the results of an XMLHTTPRequest
 		 *
@@ -121,24 +145,29 @@ var achilles = function(params) {
 			var title = ''; //document.title? need to fix.
 		
 			// clear selector for action chaining
-			achilles.selected = false;
-
-			// set initial state to make the back button play nicely
-			if ( !_awake ) {
-				_history.replaceState({url:null}, '')
-				_awake = true
-			}
-
-			// add state
-			_history.pushState({url:url}, title, url)
+			// [Z] now set in _xhr
+			//achilles.selected = false;
 
 			_parse(results);
 
-			// google analytics
-			if ( window._gaq ) {
+			if (opts.history) {
+
+				// set initial state to make the back button play nicely
+				if ( !_awake ) {
+					_history.replaceState({url:null}, '')
+					_awake = true
+				}
+
+				// add state
+				_history.pushState({url:url}, title, url);
+
+				// google analytics
+				if ( window._gaq ) {
 					_gaq.push(['_trackPageview']);
+				}
 			}
 		},
+
 		/**
 		 *	(fairly) safe history interface. Supports HTML5 history and History.js or falls back softly.
 		 *	@access	private
@@ -148,9 +177,7 @@ var achilles = function(params) {
 			var $stub = function(){},
 				hst = window.history || window.History;
 			
-			if (hst) {
-				return hst;
-			}
+			if (hst) { return hst; }
 
 			return {
 				go: $stub,
@@ -158,6 +185,7 @@ var achilles = function(params) {
 				replaceState: $stub
 			}
 		})(),
+
 		/**
 		 *	Handle the nav buttons via history API's window.onpopstate event
 		 *
@@ -169,6 +197,7 @@ var achilles = function(params) {
 				achilles.get(event.state.url);
 			}
 		},
+
 		/**
 		 *	Submit an asynchronous request (uses jQuery.ajax)
 		 *
@@ -180,9 +209,11 @@ var achilles = function(params) {
 		 */
 		_xhr = function(method, url, data, callback) {
 
-			var settings = {};
-		
-			settings.type = method.toUpperCase();
+			var settings = {
+					success: function(results) { _success(url, results); },
+					type: method.toUpperCase()
+				},
+				selector;
 
 			if (['POST','GET'].indexOf(settings.type) < 0) {
 				throw('unknown HTTP Method');
@@ -193,11 +224,15 @@ var achilles = function(params) {
 			} catch(e) {
 				settings.data = _getDeviceInfo();
 			}
+
+			selector = $(this).attr('data-target')
 			
-			settings.success = function(results) {
-				_success(url, results);
+			if (selector) {
+				achilles.selected = selector;
+			} else {
+				achilles.selected = null;
 			}
-			
+
 			$.ajax(url, settings);
 		};
 
@@ -212,7 +247,7 @@ var achilles = function(params) {
 	 *	@param	{jQuery|Element|String}	el	The container element to load within
 	 *	@return	{Object}	The result of the loader function
 	 */
-	this.Loader = function( el ) {
+	this.Loader = function (el) {
 
 		var $el = $(el),
 			wrapper,
@@ -260,7 +295,7 @@ var achilles = function(params) {
 	 *					            the $.serializeObject plugin.
 	 */
 	this.get = function( el, url, data ) {
-		_xhr('POST', url, data);
+		_xhr.call(el, 'POST', url, data);
 	};
 	
 	/**
@@ -275,14 +310,14 @@ var achilles = function(params) {
 	 */
 	this.post = function( el, url, data ) {
 
-		/*if( $(el).hasClass('achilles-load') ) {
-			var loader = new achilles.Loader(el);
-			loader.set();
+		if( $(el).hasClass('achilles-load') ) {
+			_loader = new achilles.Loader(el);
+			_loader.set();
 		}
 
-		$.post( url, data, _handler);*/
+		$.post( url, data, _handler);
 		
-		_xhr('POST', url, data);
+		_xhr.call(el, 'POST', url, data);
 	};
 
 	/**
@@ -299,9 +334,9 @@ var achilles = function(params) {
 			achilles.selected = $(selector);
 		},
 		/**
-		 *	Unselect the currently selected element
+		 *	Deselect the currently selected element
 		 */
-		unselect: function() {
+		deselect: function() {
 			achilles.selected = null;
 		},
 		/**
@@ -332,14 +367,13 @@ var achilles = function(params) {
 				e.preventDefault();
 				achilles.get( this, this.href );
 			});
-			
-			// set up history
-			(function(){
-				window.onpopstate = function(event) {
 
+			if (opts.history) {
+				// set up history
+				window.onpopstate = function(event) {
 					_stateHandler(event);
 				}
-			})();
+			}
 		});
 
 		return this;
@@ -347,7 +381,9 @@ var achilles = function(params) {
 };
 
 // instantiate achilles
-achilles = new achilles({});
+achilles = new achilles({
+	history: true
+});
 window['achilles'] = achilles.init();
 
 })(jQuery);

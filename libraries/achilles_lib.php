@@ -36,6 +36,32 @@ class Achilles_lib {
 	}
 
 	/**
+	 *	Extend Achilles library to support form validation
+	 *
+	 *	@param	string	a CSS selector pointed at the target form
+	 *	@return	array	the achilles queue
+	 */
+	public function showErrors( $selector ) {
+
+		$this->ci->load->library( 'form_validation' );
+
+		$errors = array();
+	
+		foreach( $_POST as $key => $value ) {
+			if( $f = form_error( $key ) ) {
+				$errors[ $key ] = $f;
+			}
+		}
+
+		$this->queue[] = array(
+			'act' => 'showErrors',
+			'on' => array( $selector, $errors )
+		);
+
+		return $this;
+	}
+	
+	/**
 	 *	Animate display of a message into the specified selector
 	 *	
 	 *	@link	http://api.jquery.com/category/selectors/

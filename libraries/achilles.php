@@ -9,7 +9,7 @@ class Achilles {
 	protected 
 		$callbacks = array(),
 		$ci,
-		$clientinfo = array(),
+		//$clientinfo = array(),
 		$queue = array();
 
 	/**
@@ -20,7 +20,7 @@ class Achilles {
 		$this->ci = &get_instance();
 	}
 
-	public function _restore_client_info() {
+	/*public function _restore_client_info() {
 	
 		$properties = array(
 			'availHeight',
@@ -34,17 +34,18 @@ class Achilles {
 				$this->clientinfo[ $prop ] = $_POST[ $prop ];
 			}
 		}
-	}
+	}*/
 	
 	/**
 	 *	Determine if Achilles should be involved
+	 *
 	 *	@return	boolean
 	 */
 	public function use_achilles() {
 
 		if ( isset( $_POST['achilles'] ) && $_POST['achilles'] ) {
 
-			$this->_restore_client_info();
+//			$this->_restore_client_info();
 			return true;
 		}
 
@@ -53,53 +54,17 @@ class Achilles {
 
 	/**
 	 *	Return a value from the POST array
+	 *
+	 *	@param	string	the key to retrieve
+	 *	@return	mixed 	the value of the requested item or NULL if item does not exist
 	 */
 	public function param( $key ) {
+
 		if( isset( $_POST[ $key ] ) ) {
 			return $_POST[ $key ];
 		}
 		
 		return NULL;
-	}
-
-	/**
-	 *	Demonstration message
-	 */
-	public function message( $parent, $message, $class = '' ) {
-
-		$this->select( $parent . ' .achilles-message')
-			->hide()
-			->html( $message )
-			->addClass('notice ' . $class )
-			->fadeIn();
-
-		return $this;
-	}
-	
-	/**
-	 *	Extend Achilles library to support form validation
-	 *
-	 *	@param	string	a CSS selector pointed at the target form
-	 *	@return	array	the achilles queue
-	 */
-	public function showErrors( $selector ) {
-
-		$this->ci->load->library( 'form_validation' );
-
-		$errors = array();
-	
-		foreach( $_POST as $key => $value ) {
-			if( $f = form_error( $key ) ) {
-				$errors[ $key ] = $f;
-			}
-		}
-
-		$this->queue[] = array(
-			'act' => 'showErrors',
-			'on' => array( $selector, $errors )
-		);
-
-		return $this;
 	}
 
 	/**
@@ -123,6 +88,7 @@ class Achilles {
 
 	/**
 	 *	Handle requests for methods that haven't been explicitly defined
+	 *
 	 *	@param	string	requested function
 	 *	@param	array	parameters for the requested function
 	 */
