@@ -1,25 +1,64 @@
 achilles
 ========
 
-It's like AJAX, but...it's different. To encourage accessibility and minimize the amount of spaghetti in your views, achilles provides a server-side interface for scripting client-side behaviors.
+It's like AJAX, but...it's different. Achilles encourages accessibility and eliminates duplication by empowering the server to describe client-side behaviors.
 
-### Real quickly,
+Hello, world
+------------
 
-Under achilles' server-first approach, your application&mdash;forms, validation, almost *everything*&mdash; resides almost exclusively on the server. By including the `achilles.js` script to your views, achilles enables you to build AJAX-ready components that can interact with your controllers and deliver dynamic experiences through the achilles interface. 
+The simplest use of achilles uses a [pjax](https://github.com/defunkt/jquery-pjax/)-like behavior to speed page loading.
 
-	<a class="achilles-able" href="<?php echo site_url('controller/achilles_function'); ?>">Say hello!</a>
+	<div id="content">
+		<a href="path/to/content.html" class="achilles-able" data-target="#content">Swap content</a>
+	</div>
 
-Call achilles in your controller functions to dynamically respond to AJAX requests. When a controller is called by an `achilles-able` link you might, for instance, have achilles respond by telling the client to log a message:
+	<script src="jquery.js"></script>
+	<script src="achilles.js"></script>
+
+That's really all it takes.
+
+Overview
+--------
+
+Achilles implements a basic syntax that describes actions in terms of a JSON-encoded sequence of commands:
+
+	[{
+		"run":"alert",
+		"arg":["hello, world!"]
+	}]
+
+When a commands is dispatched by the server, a callback on the client catches it and uses it to execute a pre-determined action. This empowers the server to describe actions to the client without enlisting `[eval](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/eval#Don%27t_use_eval!)`.
+
+To help support this behavior, HTTP requests initiated by the client have a twist: unless otherwise configured, achilles requests will include details of the client browser's state and capabilities:
+
+	GET /path/to/content?achilles=true&availHeight=728availWidth=1366&height=768&orientation=-1&width=1366
+
+This information allows the server to tailor its response to the current state of the client-side device.
+
+This approach provides a natural fallback if achilles is unavailable. Because the URL of any resource is not changed whether achilles is in use or not, servers can be easily configured to respond with static HTML to any request lacking the `achilles=true` parameter.
+
+### Designing server-side controllers
+
+Under achilles' server-first approach, all critical application components&mdash;forms, validation routines, and so forth&mdash; reside exclusively on the server. Including achilles via the `achilles.js` script enables achilles to enhance these static components with a degree of dynamic interactivity:
+
+	<?php echo achilles_anchor('controller/achilles_function', 'Say hello!'); ?>
+
+Call achilles in your controller functions to dynamically respond to AJAX requests. When a controller is called by a link with the `.achilles-able` attribute set you might, for instance, have achilles respond by telling the client to log a message:
 
 	public function achilles_function() {
+
+		$message = 'hello, world!';
+
 		if( $this->achilles->use_achilles() ) {
 			$this->achilles
-				->log('hello, world!')
+				->log( $message )
 				->flush();
+		} else {
+			echo $message;
 		}
 	}
 
-On the client side, a pre-defined `message` function is waiting to log the returned message:
+On the client side, a pre-defined `message` function will log the returned message:
 
 	achilles.handlers.log = function(message) {
 		try {
@@ -27,20 +66,22 @@ On the client side, a pre-defined `message` function is waiting to log the retur
 		} catch(e){}
 	};
 
-### That's awesome, because:
+If for some reason achilles is unavailable, the controller will simply display its message as static HTML.
+	
+### That's awesome because:
 
 * It's efficient: write validation routines and script behaviors once, avoiding duplication of effort between the client and server side
 * It's clean: code is neatly wrapped up into the achilles namespace rather than being injected into the page
 * It's accessible: achilles' server-first approach encourages fallbacks, redundancy and progressive enhancement
-* **It makes sense**: using achilles, a controller queried via AJAX doesn't need client-side bootstraps to respond to the client directly
+* **It makes sense**: using achilles, a controller queried via AJAX doesn't need bootstraps to make client-side magic happen
 
 How it works
 ------------
 
 1. A link or form with the `.achilles-able` class is triggered by a `click` or `submit` event (respectively)
-2. The controller targeted by the `.achilles-able` element processes the request and responds through the achilles interface
-3. achilles converts the chained response into JSON
-4. The client-side script processor (`achilles.js`) parses the JSON from the server and executes the requested actions.
+2. The request is routed to a server-side handler that processes the request 
+3. The server submits an achilles-formatted response
+4. The client-side script processor (`achilles.js`) parses the JSON from the server and executes the requested actions
 
 Dependencies
 ------------
@@ -74,17 +115,19 @@ Once you've got the spark set up, you can load it using:
 		$this->load->view('achilles_view');
 	}
 
-2. Set up `views/achilles_view.php` to include `achilles.js` and a link referring back to the `achilles` controller function. 
+2. Set up `views/achilles_view.php` to include the achilles scripts and a link referring back to the `achilles` controller function.
 
-**Note**: though `achilles.js` comes bundled within the achilles spark, its ultimate destination is up to you. Please edit the path accordingly!
+**Note**: since v0.0.2, the `achilles_scripts` helper may be used to print the path to the required scripts. Please edit the path in `config/achilles.php` according to your server configuration!
 
 	<html>
 	<body>
 		<div class="achilles-message">Ground control to Major Tom?</div>
 
-		<p><a href="<?php echo site_url('welcome/achilles'); ?>" class="achilles-able">Phone home</a></p>
+		<p><?php echo achilles_anchor('welcome/achilles', 'Phone home'); ?></p>
+
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
-		<script src="<?php echo base_url('js/achilles.js'); ?>"></script>
+		<?php echo achilles_scripts(); ?>
+
 	</body>
 	</html>
 
@@ -92,12 +135,12 @@ Once you've got the spark set up, you can load it using:
 
 ## Form Processing
 
-One of achilles built-in features is the ability to translate results from Codeigniter's `form_validation` class into AJAX-driven messages. Just create a view in `views/achilles_form.php` containing a form with the `achilles-able` class:
+One of achilles' built-in features is the ability to translate results from Codeigniter's `form_validation` class into AJAX-driven messages. Just create a view in `views/achilles_form.php` containing a form with the `achilles-able` class:
 
 	<html>
 	<body>
 
-		<?php echo form_open('welcome/nametag', array('id'=>'nametag', 'class' => 'achilles-able')); ?>
+		<?php echo achilles_form_open('welcome/nametag', array('id'=>'nametag')); ?>
 		
 		<label for="name">Your name, please. <?php if( form_error('name') ) echo 'ERROR'; ?></label>
 		<input type="text" id="name" name="name" value="<?php echo set_value('name'); ?>" />
@@ -107,7 +150,7 @@ One of achilles built-in features is the ability to translate results from Codei
 		</form>
 
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/1.5.1/jquery.min.js"></script>
-		<script src="<?php echo base_url('js/achilles.js'); ?>"></script>
+		<?php echo achilles_scripts(); ?>
 	</body>
 	</html>
 
