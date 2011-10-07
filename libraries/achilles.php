@@ -9,6 +9,7 @@ class Achilles {
 	protected 
 		$callbacks = array(),
 		$ci,
+		$clientinfo = array(),
 		$queue = array();
 
 	/**
@@ -19,12 +20,46 @@ class Achilles {
 		$this->ci = &get_instance();
 	}
 
+	public function _restore_client_info() {
+	
+		$properties = array(
+			'availHeight',
+			'availWidth',
+			'orientation'
+		);
+
+		foreach( $properties as $prop ) {
+			
+			if( isset( $_POST[ $prop ] ) && $_POST[ $prop ] != -1 ) {
+				$this->clientinfo[ $prop ] = $_POST[ $prop ];
+			}
+		}
+	}
+	
 	/**
 	 *	Determine if Achilles should be involved
 	 *	@return	boolean
 	 */
 	public function use_achilles() {
-		return ( isset( $_POST['achilles'] ) && $_POST['achilles'] );
+
+		if ( isset( $_POST['achilles'] ) && $_POST['achilles'] ) {
+
+			$this->_restore_client_info();
+			return true;
+		}
+
+		return false;
+	}
+
+	/**
+	 *	Return a value from the POST array
+	 */
+	public function param( $key ) {
+		if( isset( $_POST[ $key ] ) ) {
+			return $_POST[ $key ];
+		}
+		
+		return NULL;
 	}
 
 	/**
@@ -40,7 +75,7 @@ class Achilles {
 
 		return $this;
 	}
-
+	
 	/**
 	 *	Extend Achilles library to support form validation
 	 *
@@ -60,8 +95,8 @@ class Achilles {
 		}
 
 		$this->queue[] = array(
-			'action' => 'showErrors',
-			'arguments' => array( $selector, $errors )
+			'act' => 'showErrors',
+			'on' => array( $selector, $errors )
 		);
 
 		return $this;
@@ -80,11 +115,8 @@ class Achilles {
 	public function add_callback( $key, $callback = false ) {
 
 		if( $callback ) {
-
 			$this->callbacks[ $key ] = $callback;
-		}
-		else {
-
+		} else {
 			$this->actions[] = $key;
 		}
 	}
@@ -104,8 +136,8 @@ class Achilles {
 		else {
 
 			$data = array(
-				'action' => $function,
-				'arguments' => $params
+				'act' => $function,
+				'on' => $params
 			);
 
 			$this->queue[] = $data;
