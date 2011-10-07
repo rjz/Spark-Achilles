@@ -5,10 +5,10 @@
  */
 (function($){
 
-	// don't overwrite existing version
-	if(typeof achilles != 'undefined') {
-		return;	
-	}
+// don't overwrite existing version
+if(typeof achilles != 'undefined') {
+	return;
+}
 
 // add a few helper functions to jQuery
 $.extend($.fn,  {
@@ -29,19 +29,190 @@ $.extend($.fn,  {
 /**
  *	extend AJAX namespace with a few helpers
  */
-var achilles = {
+var achilles = function(params) {
+
+	var /**
+		 *	Options for this version of achilles
+		 *	@type {Object}
+		 */
+		opts = $.extend({
+			properties: ['availHeight','availWidth','height','orientation','width']
+		}, params),
+		_awake = false,
+		/**
+		 *	Return browser information
+		 *
+		 *	@access	private
+		 */
+		_getDeviceInfo = function() {
+
+			var properties = opts.properties,
+				result = {achilles:true},
+				screen = window.screen;
+
+			$.each(properties, function (i, prop) {
+				result[prop] = -1;
+				if (screen[prop] !== undefined) {
+					result[prop] = screen[prop];
+				}
+			});
+
+			return result;
+		},
+		/**
+		 *	Do something cool with whatever the server said
+		 *
+		 *	@access	private
+		 *	@param	{Array}	results	a list of action items
+		 */
+		_parse = function(results) {
+
+			try {
+				o = $.parseJSON(results);
+			} catch(e) {
+				// todo: handle an HTML result
+			}
+		
+			if (o) {
+
+				var r, 
+					i = 0;
+
+				// execute each method chained up in Codeigniter
+				while (r = o[i++] ) {
+
+					if (typeof r.act  == 'string') {
+
+						var what = null,
+							func = null;
+
+						if( achilles.selected ) {
+							what = $(achilles.selected);
+						}
+						// (1) try user functions
+						func = achilles.handlers[r.act];
+
+						// (2) try jQuery
+						if( typeof( func ) != 'function' && what ) {
+							func = $(what)[r.act];
+						}
+
+						// (3) unknown function -- toss an error and get the hell out
+						if( typeof( func ) != 'function' ) {
+							throw( 'undefined handler: ' + r.act );
+							return;
+						}
+
+						// call the function with whatever arguments Codeigniter supplied
+						func.apply( what, r.on );
+					}
+				}
+			}
+		},
+		/**
+		 *	Handle the results of an XMLHTTPRequest
+		 *
+		 *	@param	{String}	url    	the address stuff was sent to
+		 *	@param	{Object}	results	what happened
+		 *	@access	private
+		 */
+		_success = function(url, results){
+
+			var title = ''; //document.title? need to fix.
+		
+			// clear selector for action chaining
+			achilles.selected = false;
+
+			// set initial state to make the back button play nicely
+			if ( !_awake ) {
+				_history.replaceState({url:null}, '')
+				_awake = true
+			}
+
+			// add state
+			_history.pushState({url:url}, title, url)
+
+			_parse(results);
+
+			// google analytics
+			if ( window._gaq ) {
+					_gaq.push(['_trackPageview']);
+			}
+		},
+		/**
+		 *	(fairly) safe history interface. Supports HTML5 history and History.js or falls back softly.
+		 *	@access	private
+		 */
+		_history = (function(){
+
+			var $stub = function(){},
+				hst = window.history || window.History;
+			
+			if (hst) {
+				return hst;
+			}
+
+			return {
+				go: $stub,
+				pushState: $stub,
+				replaceState: $stub
+			}
+		})(),
+		/**
+		 *	Handle the nav buttons via history API's window.onpopstate event
+		 *
+		 *	@param	{Object}	event	the event triggered by popstate()
+		 *	@access	private
+		 */
+		_stateHandler = function (event) {
+			if (event.state) {
+				achilles.get(event.state.url);
+			}
+		},
+		/**
+		 *	Submit an asynchronous request (uses jQuery.ajax)
+		 *
+		 *	@param	{String}  	method  	HTTP request method (GET|POST)
+		 *	@param	{String}  	url     	the url to submit request to
+		 *	@param	{Object}  	data    	the data to submit
+		 *	@param	{Function}	callback	what to do on success
+		 *	@access	private
+		 */
+		_xhr = function(method, url, data, callback) {
+
+			var settings = {};
+		
+			settings.type = method.toUpperCase();
+
+			if (['POST','GET'].indexOf(settings.type) < 0) {
+				throw('unknown HTTP Method');
+			}
+
+			try {
+				settings.data = $.extend(data, _getDeviceInfo());
+			} catch(e) {
+				settings.data = _getDeviceInfo();
+			}
+			
+			settings.success = function(results) {
+				_success(url, results);
+			}
+			
+			$.ajax(url, settings);
+		};
+
 	/**
 	 *	The currently selected jQuery collection
 	 *	@type	{jQuery}
 	 */
-	'selected' : false,
+	this.selected = false;
 
 	/**
 	 *	Loader - mark an element as loading
 	 *	@param	{jQuery|Element|String}	el	The container element to load within
 	 *	@return	{Object}	The result of the loader function
 	 */
-	Loader: function( el ) {
+	this.Loader = function( el ) {
 
 		var $el = $(el),
 			wrapper,
@@ -76,148 +247,107 @@ var achilles = {
 				$el.html(wrapper.get(0).firstChild.innerHTML);
 			});
 		}
-	},
+	};
+
 	/**
-	 *	Post method
+	 *	Get method
 	 *
-	 *	Submit a request and handle the server's response.
+	 *	GET a resource and handle the server's response.
 	 *
 	 *	@param	{jQuery|Element|String}	el the element (usually a link or form) that is calling post()
 	 *	@param	{String}	url     The URL to post data to
 	 *	@param	{Object}	data	An object containing post data. Forms may generate this using
 	 *					            the $.serializeObject plugin.
 	 */
-	post: function( el, url, data ) {
+	this.get = function( el, url, data ) {
+		_xhr('POST', url, data);
+	};
+	
+	/**
+	 *	Post helper
+	 *
+	 *	POST a request and handle the server's response.
+	 *
+	 *	@param	{jQuery|Element|String}	el the element (usually a link or form) that is calling post()
+	 *	@param	{String}	url     The URL to post data to
+	 *	@param	{Object}	data	An object containing post data. Forms may generate this using
+	 *					            the $.serializeObject plugin.
+	 */
+	this.post = function( el, url, data ) {
 
-		try {
-			data = $.extend( data, {'achilles':1} );
-		} catch(e) {
-			data = { 'achilles' : 1 };	
-		}
-
-		if( $(el).hasClass('achilles-load') ) {
+		/*if( $(el).hasClass('achilles-load') ) {
 			var loader = new achilles.Loader(el);
 			loader.set();
 		}
 
-		$.post( url, data, function(results){
+		$.post( url, data, _handler);*/
+		
+		_xhr('POST', url, data);
+	};
 
-			// clear selector for action chaining
-			achilles.selected = false;
-
-			// cut loading graphic, if it's being used
-			if(loader) loader.cancel();
-
-			// process result from server into a JS object
-			if(o = $.parseJSON(results)) {
-
-				var r, 
-					i = 0;
-
-				// execute each method chained up in Codeigniter
-				while(r = o[i++] ) {
-
-					if( typeof( r.action ) == 'string' ) {
-
-						var what = null,
-							func = null;
-
-						if( achilles.selected ) what = $(achilles.selected);
-
-						// we'll need to find the function that Codeigniter has requested
-						// (1) try user functions
-						func = achilles.handlers[r.action];
-
-						// (2) try jQuery
-						if( typeof( func ) != 'function' && what ) {
-							func = $(what)[r.action];
-						}
-
-						// (3) unknown function -- toss an error and get the hell out
-						if( typeof( func ) != 'function' ) {
-							throw( 'undefined handler: ' + r.action );
-							return;	
-						}
-
-						// call the function with whatever arguments Codeigniter supplied
-						func.apply( what, r.arguments );
-					}
-				}
-			}				
-		});
-	},
 	/**
 	 *	A container for all handler functions
-	 *	@type	{Object<String, Function>}
+	 *	@namespace
 	 */
-	'handlers' : {}
+	this.handlers = {
+
+		/**
+		 *	Set the currently selected element
+		 *	@param	{String}	selector	the selector to find
+		 */
+		select: function (selector) {
+			achilles.selected = $(selector);
+		},
+		/**
+		 *	Unselect the currently selected element
+		 */
+		unselect: function() {
+			achilles.selected = null;
+		},
+		/**
+		 *	Log a message to the console
+		 */
+		log: function (message) {
+			try {
+				console.log(message);
+			} catch(e){}
+		}
+	};
+
+	/**
+	 *	Get all set up
+	 */
+	this.init = function() {
+
+		$(document).ready(function(){
+
+			// set up forms
+			$('form.achilles-able').live('submit', function(e){
+				e.preventDefault();
+				achilles.post( this, this.action, $(this).serializeObject() );
+			});
+
+			// set up links
+			$('a.achilles-able').live('click',function(e){
+				e.preventDefault();
+				achilles.get( this, this.href );
+			});
+			
+			// set up history
+			(function(){
+				window.onpopstate = function(event) {
+
+					_stateHandler(event);
+				}
+			})();
+		});
+
+		return this;
+	}
 };
 
-// extend AJAX namespace with a few default handler functions
-$.extend(achilles.handlers, {
-	/**
-	 *	Set the currently selected element
-	 */
-	'select' : function( selector ) {
-		achilles.selected = $(selector);
-	},
-	/**
-	 *	Unselect the currently selected element
-	 */
-	'unselect' : function() {
-		achilles.selected = null;
-	},
-	'log' : function(message) {
-		try {
-			console.log(message);
-		} catch(e){}
-	},
-	/**
-	 *	Show form errors
-	 */
-	'showErrors' : function(selector, errors) {
-	
-		var input,
-			fields = errors;
-	
-		// clear errors
-		$('input,textarea,select', $(selector))
-			.removeClass('error')
-			.labelFor()
-			.removeClass('error')
-			.find('.error')
-			.remove();
-
-		// set errors
-		for(x in fields) {
-			input = $('[name="'+x+'"]').addClass('error');
-			label = input.labelFor().addClass('error');
-			i = label.find('.instruction');
-
-			if(i.length) {
-				i.addClass('error').html(fields[x]);
-			} else {
-				label.append(' <span class="instruction error">'+fields[x]+'</span>' );
-			}
-		}
-	}
-});
-
-window['achilles'] = achilles;
-
-$(document).ready(function(){
-
-	// set up forms
-	$('form.achilles-able').live('submit', function(e){
-		e.preventDefault();
-		achilles.post( this, this.action, $(this).serializeObject() );
-	});
-
-	// set up links
-	$('a.achilles-able').live('click',function(e){
-		e.preventDefault();
-		achilles.post( this, this.href );
-	});
-});
+// instantiate achilles
+achilles = new achilles({});
+window['achilles'] = achilles.init();
 
 })(jQuery);
