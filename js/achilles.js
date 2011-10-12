@@ -1,6 +1,8 @@
 /**
  *	Achilles core functions
+ *	https://github.com/rjz/Achilles-js
  *
+ *	@author 	RJ Zaworski <rj@rjzaworski.com>
  *	@license	JSON <http://www.json.org/license.html>
  */
 (function($){
@@ -38,19 +40,24 @@ var achilles = function(params) {
 		 *	@access	private
 		 */
 		opts = $.extend({
-			history: true,
-			properties: ['availHeight','availWidth','height','orientation','width']
+			history    : true,
+			postOnly   : false,
+			properties : ['availHeight','availWidth','height','orientation','width']
 		}, params),
+
 		/**
 		 *	Has achilles been used yet? It will wake up when it's called.
 		 *	@access	private
 		 */
 		_awake = false,
+
 		/**
 		 *	If an element's loading, _loader will indicate it
 		 *	@type	{achilles.Loader}
 		 */
 		_loader = null,
+
+		_pushedState = false,
 		/**
 		 *	Return browser information
 		 *	@access	private
@@ -63,7 +70,7 @@ var achilles = function(params) {
 
 			$.each(properties, function (i, prop) {
 				result[prop] = -1;
-				if (screen[prop] !== undefined) {
+				if (prop in screen) {
 					result[prop] = screen[prop];
 				}
 			});
@@ -77,57 +84,59 @@ var achilles = function(params) {
 		 *	@access	private
 		 *	@param	{Array}	results	a list of action items
 		 */
-		_parse = function(results, selector) {
+		_parse = function (results) {
 
-			var o;
+			var action,
+				actions,
+				html,
+				subject,
+				verb;
 
 			try {
-				o = $.parseJSON(results);
+				actions = $.parseJSON(results);
 			} catch(e) {
 
-				if (!achilles.selected) {
-					throw('no selector set');
-					return;
+				// so parsing as JSON didn't work out. We'll try to figure out what went wrong
+				if (!results) {
+					_toss('Got nothin\', boss.');
+				} else if (!achilles.selected) {
+					_toss('No selector set');
+				} else if (!(html = $(achilles.selected, results))) {
+					_toss('Couldn\'t find selector "' + achilles.selected + '" in results!');
+				} else {
+					// [fixme]: refine the HTML fallback
+					// primitive, but it works:
+					$(achilles.selected).replaceWith(html);
 				}
-
-				// [fixme]: refine
-				// primitive, but it works:
-				$(achilles.selected).replaceWith($(achilles.selected, results));
 				return;
 			}
-			
-			if (o) {
 
-				var r,
-					i = 0;
+			if (actions) {
 
 				// execute each method chained up in Codeigniter
-				while (r = o[i++]) {
+				while (action = actions.shift()) {
 
-					if (typeof r.run  == 'string') {
-
-						var subject = null,
-							verb = null;
+					if (typeof action.run  == 'string') {
 
 						if (achilles.selected) {
 							subject = $(achilles.selected);
 						}
 						// (1) try user functions
-						verb = achilles.handlers[r.run];
+						verb = achilles.handlers[action.run];
 
 						// (2) try jQuery
 						if( (typeof verb  != 'function') && subject ) {
-							verb = $(subject)[r.run];
+							verb = $(subject)[action.run];
 						}
 
 						// (3) unknown function -- toss an error and get the hell out
 						if( typeof( verb ) != 'function' ) {
-							throw( 'undefined handler: ' + r.run );
+							_toss( 'undefined handler: ' + action.run );
 							return;
 						}
 
 						// call the function with whatever arguments the server supplied
-						verb.apply( subject, r.arg );
+						verb.apply( subject, action.arg );
 					}
 				}
 			}
@@ -140,13 +149,9 @@ var achilles = function(params) {
 		 *	@param	{Object}	results	what happened
 		 *	@access	private
 		 */
-		_success = function(url, results){
+		_success = function(url, results, push){
 
 			var title = ''; //document.title? need to fix.
-		
-			// clear selector for action chaining
-			// [Z] now set in _xhr
-			//achilles.selected = false;
 
 			_parse(results);
 
@@ -154,18 +159,28 @@ var achilles = function(params) {
 
 				// set initial state to make the back button play nicely
 				if ( !_awake ) {
-					_history.replaceState({url:null}, '')
+					_history.replaceState({url:location.href}, '')
 					_awake = true
 				}
 
-				// add state
-				_history.pushState({url:url}, title, url);
+				if (push) {
+					_history.pushState({url:url}, '', url);
+				}
 
 				// google analytics
 				if ( window._gaq ) {
 					_gaq.push(['_trackPageview']);
 				}
 			}
+		},
+
+		/**
+		 *	Throw an exception
+		 *	@param	{String}	message	what to say
+		 */
+		_toss = function (message) {
+
+			throw('!Achilles: ' + message);
 		},
 
 		/**
@@ -193,8 +208,11 @@ var achilles = function(params) {
 		 *	@access	private
 		 */
 		_stateHandler = function (event) {
-			if (event.state) {
-				achilles.get(event.state.url);
+
+			if (!_pushedState && event.state) {
+				if (event.state.url) {
+					achilles.get( '', event.state.url, {}, {push:false} );
+				}
 			}
 		},
 
@@ -207,33 +225,38 @@ var achilles = function(params) {
 		 *	@param	{Function}	callback	what to do on success
 		 *	@access	private
 		 */
-		_xhr = function(method, url, data, callback) {
+		_xhr = function (params) {
 
 			var settings = {
-					success: function(results) { _success(url, results); },
-					type: method.toUpperCase()
+					success: function(results) { 
+						_success(params.url, results, params.push); 
+					},
+					type: params.method.toUpperCase()
 				},
 				selector;
 
 			if (['POST','GET'].indexOf(settings.type) < 0) {
-				throw('unknown HTTP Method');
+				_toss('unknown HTTP Method: ' + settings.type);
 			}
 
 			try {
-				settings.data = $.extend(data, _getDeviceInfo());
+				settings.data = $.extend(params.data, _getDeviceInfo());
 			} catch(e) {
 				settings.data = _getDeviceInfo();
 			}
-
-			selector = $(this).attr('data-target')
 			
-			if (selector) {
-				achilles.selected = selector;
-			} else {
-				achilles.selected = null;
+			if (params.target) {
+
+				selector = $(params.target).attr('data-target');
+
+				if (selector && selector.length) {
+					achilles.selected = selector;
+				} else {
+					achilles.selected = null;
+				}
 			}
 
-			$.ajax(url, settings);
+			$.ajax(params.url, settings);
 		};
 
 	/**
@@ -294,8 +317,17 @@ var achilles = function(params) {
 	 *	@param	{Object}	data	An object containing post data. Forms may generate this using
 	 *					            the $.serializeObject plugin.
 	 */
-	this.get = function( el, url, data ) {
-		_xhr.call(el, 'POST', url, data);
+	this.get = function( el, url, data, params ) {
+
+		var method = opts.postOnly ? 'POST' : 'GET';
+	
+		_xhr($.extend({
+			method: method,
+			push: true,
+			target: el,
+			url: url,
+			data: data
+		}, params));
 	};
 	
 	/**
@@ -315,9 +347,13 @@ var achilles = function(params) {
 			_loader.set();
 		}
 
-		$.post( url, data, _handler);
-		
-		_xhr.call(el, 'POST', url, data);
+		_xhr({
+			method: 'POST',
+			push: true,
+			target: el,
+			url: url,
+			data: data
+		});
 	};
 
 	/**
@@ -355,7 +391,7 @@ var achilles = function(params) {
 	this.init = function() {
 
 		$(document).ready(function(){
-
+		
 			// set up forms
 			$('form.achilles-able').live('submit', function(e){
 				e.preventDefault();
@@ -364,8 +400,13 @@ var achilles = function(params) {
 
 			// set up links
 			$('a.achilles-able').live('click',function(e){
+
+				if (e.which > 1 || e.metaKey) {
+				      return true;
+				}
+
 				e.preventDefault();
-				achilles.get( this, this.href );
+				achilles.get(this, this.href);
 			});
 
 			if (opts.history) {
@@ -382,7 +423,8 @@ var achilles = function(params) {
 
 // instantiate achilles
 achilles = new achilles({
-	history: true
+	history: true,
+	postOnly: true
 });
 window['achilles'] = achilles.init();
 

@@ -42,8 +42,8 @@ class Achilles {
 	 *	@return	boolean
 	 */
 	public function use_achilles() {
-
-		if ( isset( $_POST['achilles'] ) && $_POST['achilles'] ) {
+	
+		if ( ( isset( $_POST['achilles'] ) && $_POST['achilles'] ) ) {
 
 //			$this->_restore_client_info();
 			return true;
@@ -60,7 +60,7 @@ class Achilles {
 	 */
 	public function param( $key ) {
 
-		if( isset( $_POST[ $key ] ) ) {
+		if( isset( $_POST['achilles'] ) && isset( $_POST[ $key ] ) ) {
 			return $_POST[ $key ];
 		}
 		

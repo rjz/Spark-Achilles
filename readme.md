@@ -20,11 +20,14 @@ That's really all it takes.
 Overview
 --------
 
-Achilles implements a basic syntax that describes actions in terms of a JSON-encoded sequence of commands:
+Achilles implements a basic syntax for describing complex actions as a JSON-encoded command sequence:
 
 	[{
 		"run":"alert",
 		"arg":["hello, world!"]
+	},{
+		"run":"alert",
+		"arg":["still alering!"]
 	}]
 
 When a commands is dispatched by the server, a callback on the client catches it and uses it to execute a pre-determined action. This empowers the server to describe actions to the client without enlisting [`eval()`](https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/eval#Don%27t_use_eval!).
