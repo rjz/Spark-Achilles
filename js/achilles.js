@@ -106,6 +106,7 @@ var achilles = function(params) {
 				} else {
 					// [fixme]: refine the HTML fallback
 					// primitive, but it works:
+					console.log(achilles.selected + 'replacing with..' + html);
 					$(achilles.selected).replaceWith(html);
 				}
 				return;

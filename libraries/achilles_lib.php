@@ -12,7 +12,8 @@ class Achilles_lib {
 		 *	@type array
 		 */
 		$callbacks = array(
-			'myMessage' => 'my_message'
+			'myMessage' => 'my_message',
+			'showErrors' => 'showErrors'
 		),
 		/**
 		 *	Reference to Codeigniter instance
@@ -39,7 +40,7 @@ class Achilles_lib {
 	 *	Extend Achilles library to support form validation
 	 *
 	 *	@param	string	a CSS selector pointed at the target form
-	 *	@return	array	the achilles queue
+	 *	@return	array	the goods!
 	 */
 	public function showErrors( $selector ) {
 
@@ -53,12 +54,10 @@ class Achilles_lib {
 			}
 		}
 
-		$this->queue[] = array(
-			'act' => 'showErrors',
-			'on' => array( $selector, $errors )
+		return array(
+			'run' => 'showErrors',
+			'arg' => array( $selector, $errors )
 		);
-
-		return $this;
 	}
 	
 	/**
