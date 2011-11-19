@@ -236,7 +236,7 @@ var achilles = function(params) {
 				},
 				selector;
 
-			if (['POST','GET'].indexOf(settings.type) < 0) {
+			if (settings.type != 'POST' && settings.type != 'GET') {
 				_toss('unknown HTTP Method: ' + settings.type);
 			}
 
