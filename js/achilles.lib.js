@@ -31,7 +31,7 @@ var handlers = {
 			.labelFor()
 			.find('.error')
 			.remove();
-console.log('errors' + errors);
+
 		// set errors
 		for(x in fields) {
 			input = $('[name="'+x+'"]')

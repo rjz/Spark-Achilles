@@ -9,7 +9,6 @@ class Achilles {
 	protected 
 		$callbacks = array(),
 		$ci,
-		//$clientinfo = array(),
 		$queue = array();
 
 	/**
@@ -19,22 +18,6 @@ class Achilles {
 
 		$this->ci = &get_instance();
 	}
-
-	/*public function _restore_client_info() {
-	
-		$properties = array(
-			'availHeight',
-			'availWidth',
-			'orientation'
-		);
-
-		foreach( $properties as $prop ) {
-			
-			if( isset( $_POST[ $prop ] ) && $_POST[ $prop ] != -1 ) {
-				$this->clientinfo[ $prop ] = $_POST[ $prop ];
-			}
-		}
-	}*/
 
 	/**
 	 *	Determine if Achilles should be involved

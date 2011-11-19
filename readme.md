@@ -38,9 +38,28 @@ To help support this behavior, HTTP requests initiated by the client have a twis
 
 This information allows the server to tailor its response to the current state of the client-side device.
 
-This approach provides a natural fallback if achilles is unavailable. Because the URL of any resource is not changed whether achilles is in use or not, servers can be easily configured to respond with static HTML to any request lacking the `achilles=true` parameter.
+### Enhancing controllers with Achilles
 
-### Designing server-side controllers
+Achilles is designed to encourage accessible development without duplication. It achieves this through the use of *receivers*--small conditional blocks placed in a controller function that enable achilles to offer dynamic alternatives to the controller's default output. 
+
+	function hello_world() {
+
+		$this->load->spark( 'achilles/0.0.3' );
+
+		// Receiver:
+		if( $this->achilles->use_achilles() ) {
+			$this->achilles
+				->log('hello, world!')
+				->flush();
+		}
+
+		// Default action:
+		echo 'hello, world!';
+	}
+
+In this example, the receiver checks whether or not achilles is in use. If it is, achilles tells the client to log the words "hello, world". If it isn't, the words are simply printed to the screen. This approach provides a natural fallback if achilles is unavailable. Because link URLs and form actions do not change whether achilles is in use or not, servers can be easily configured to respond with static HTML to any request lacking the `achilles=true` parameter.
+
+### Controller design
 
 Under achilles' server-first approach, all critical application components&mdash;forms, validation routines, and so forth&mdash; reside exclusively on the server. Including achilles via the `achilles.js` script enables achilles to enhance these static components with a degree of dynamic interactivity:
 
@@ -111,10 +130,11 @@ Once you've got the spark set up, you can load it using:
 
 		if( $this->achilles->use_achilles() ) {
 			$this->achilles
-				->message('body','Major Tom to ground control!')
+				->select('.achilles-message')
+				->replaceWith('Major Tom to ground control!')
 				->flush();
 		}
-	
+
 		$this->load->view('achilles_view');
 	}
 
@@ -134,7 +154,7 @@ Once you've got the spark set up, you can load it using:
 	</body>
 	</html>
 
-3. If everything is working correctly, achilles will dynamically respond with a javascript `alert`. If anything ever goes wrong (e.g., because Javascript is unavailable) the `achilles` controller function will still display its initial (static) message.
+3. If everything is working correctly, achilles will dynamically respond by updating the `.achilles-message` field. If anything ever goes wrong (e.g., because Javascript is unavailable) the `achilles` controller function will still display its initial (static) message.
 
 ## Form Processing
 
