@@ -53,7 +53,7 @@ class Achilles_lib {
 				$errors[ $key ] = $f;
 			}
 		}
-
+		
 		return array(
 			'run' => 'showErrors',
 			'arg' => array( $selector, $errors )
