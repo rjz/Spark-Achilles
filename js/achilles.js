@@ -424,7 +424,7 @@ var achilles = function(params) {
 
 // instantiate achilles
 achilles = new achilles({
-	history: true,
+	history: false,
 	postOnly: true
 });
 window['achilles'] = achilles.init();
