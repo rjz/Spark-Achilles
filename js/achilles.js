@@ -422,11 +422,18 @@ var achilles = function(params) {
 	}
 };
 
-// instantiate achilles
+/**
+ *	instantiate achilles
+ *	opts include:
+ *	- history  {Boolean} whether or not to use HTML5 history API
+ *	- postOnly {Boolean} whether or not to limit AJAX requests to the POST method (CI-style)
+ */
 achilles = new achilles({
 	history: false,
 	postOnly: true
 });
+
+// and away we go!
 window['achilles'] = achilles.init();
 
 })(jQuery);
