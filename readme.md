@@ -6,7 +6,7 @@ achilles is a framework for describing dynamic (AJAX) responses on the server. I
 Documentation
 -------------
 
-Documentation and examples are available [http://rjzaworski.com/projects/achilles](here)
+Documentation and examples are available [here](http://rjzaworski.com/projects/achilles)
 
 Contributing
 ------------
