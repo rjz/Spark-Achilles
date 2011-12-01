@@ -5,7 +5,11 @@
  */
 (function($){
 /**
- *	All custom handlers belong here.
+ *	Add your custom handler functions here
+ *
+ *	Any function included in the handlers array will be accessible
+ *	to achilles and be called before any jQuery functions with the 
+ *	same name.
  */
 var handlers = {
 	/**
@@ -14,7 +18,8 @@ var handlers = {
 	 */
 	alert: function(message) {
 		alert('server says: ' + message);
-	},	
+	},
+
 	/**
 	 *	Show form errors
 	 *	@param	{String}	selector	the form to target
@@ -40,8 +45,15 @@ var handlers = {
 				.append(' <span class="error">'+fields[x]+'</span>' );
 		}
 	},
+
 	/**
 	 * Cycle content
+	 *
+	 * `opts` may include
+	 * - direction	(up|down|left|right)
+	 *
+	 * @param	{String}	content	the content to show in 
+	 * @param	{Object}	opts	options
 	 */
 	sleight: function (content, opts) {
 		
