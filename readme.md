@@ -1,7 +1,21 @@
 achilles
 ========
 
-achilles is a framework for describing dynamic (AJAX) responses on the server. It's currently available as [a spark](getsparks.org/packages/achilles/versions/HEAD/show) for Codeigniter.
+achilles is an experimental framework for describing dynamic (AJAX) responses on the server. It's currently available as [a spark](getsparks.org/packages/achilles/versions/HEAD/show) for Codeigniter.
+
+Want to [contribute](http://rjzaworski.com/projects/achilles/docs/ref_contribute)?
+
+Loading the spark
+---------------
+
+	// load achilles
+	$this->load->spark('achilles/0.1.1');
+	
+	// (optional) load achilles helper functions
+	$this->load->helper('achilles_helper');
+	
+	// (optional) load achilles library
+	$this->load->library('achilles_lib');
 
 Documentation
 -------------
