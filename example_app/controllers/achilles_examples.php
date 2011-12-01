@@ -11,7 +11,7 @@ class Achilles_examples extends CI_Controller {
 
 		parent::__construct();
 	
-		$this->load->spark( 'achilles/0.0.1' );
+		$this->load->spark( 'achilles/0.1.1' );
 		$this->achilles->add_callback( 'fadeStuffIn', array( $this, 'fade_stuff_in' ) );
 		$this->load->helper( 'achilles');
 		$this->load->helper( 'url' );
