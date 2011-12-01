@@ -1,13 +1,45 @@
 /**
  *	Achilles core functions
- *	https://github.com/rjz/Achilles-js
+ *	http://rjzaworski.com/projects/achilles
  *
  *	@author 	RJ Zaworski <rj@rjzaworski.com>
  *	@license	JSON <http://www.json.org/license.html>
  */
-(function($){
+;(function($){
 
-// don't overwrite existing version
+/** 
+ *	Adjust the options to reflect the way you intend to use achilles
+ */
+var achillesOpts = {
+
+	// the class used to identify forms and links to achilles. If you 
+	// adjust this, be sure to update your server-side configurations
+	// accordingly
+	className: 'achilles-able',
+
+	// The class used to identify forms and links to achilles. If you 
+	// adjust this, be sure to update your server-side configurations
+	// accordingly
+	className: 'achilles-able',
+
+	// Should achilles update the history each time a new page is called?
+	// If you're using it primarily to link content, this probably makes
+	// sense. If you're submitting lots of forms to strange URLs, you
+	// probably want to leave it false
+	history    : false,
+
+	// Should achilles limit itself to POST requests in the Codeigniter
+	// vogue? If false, achilles will attempt to submit links via a GET
+	// request. Unless your installation is set up to support GET, you
+	// probably want to leave this on.
+	postOnly   : true,
+
+	// The properties to be included with each achilles request. Anything
+	// in `window.screen` is fair game to include
+	properties : ['availHeight','availWidth','height','orientation','width']
+}
+
+// don't overwrite existing version. This *shouldn't* be a problem.
 if(typeof achilles != 'undefined') {
 	return;
 }
@@ -40,8 +72,9 @@ var achilles = function(params) {
 		 *	@access	private
 		 */
 		opts = $.extend({
-			history    : true,
-			postOnly   : false,
+			className  : 'achilles-able',
+			history    : false,
+			postOnly   : true,
 			properties : ['availHeight','availWidth','height','orientation','width']
 		}, params),
 
@@ -428,10 +461,7 @@ var achilles = function(params) {
  *	- history  {Boolean} whether or not to use HTML5 history API
  *	- postOnly {Boolean} whether or not to limit AJAX requests to the POST method (CI-style)
  */
-achilles = new achilles({
-	history: false,
-	postOnly: true
-});
+achilles = new achilles(achillesOpts);
 
 // and away we go!
 window['achilles'] = achilles.init();
